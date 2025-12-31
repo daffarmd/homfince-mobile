@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:homfince/screens/login_screen.dart';
 
 class OnboardingScreen extends StatefulWidget {
   const OnboardingScreen({super.key});
@@ -32,6 +33,12 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
     ),
   ];
 
+  void _navigateToLogin() {
+    Navigator.of(context).pushReplacement(
+      MaterialPageRoute(builder: (context) => const LoginScreen()),
+    );
+  }
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -41,9 +48,7 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
         elevation: 0,
         actions: [
           TextButton(
-            onPressed: () {
-              // TODO: Navigate to Login
-            },
+            onPressed: _navigateToLogin,
             child: Text(
               'Skip',
               style: TextStyle(
@@ -74,28 +79,30 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
                       mainAxisAlignment: MainAxisAlignment.center,
                       children: [
                         // Illustration Placeholder
-                        Container(
-                          height: 300,
-                          width: double.infinity,
-                          decoration: BoxDecoration(
-                            color: const Color(0xFF1E293B),
-                            borderRadius: BorderRadius.circular(20),
-                            gradient: LinearGradient(
-                              begin: Alignment.topLeft,
-                              end: Alignment.bottomRight,
-                              colors: [
-                                const Color(0xFF1E293B),
-                                const Color(0xFF1E293B).withOpacity(0.5),
-                              ],
+                        Flexible(
+                          child: Container(
+                            constraints: const BoxConstraints(maxHeight: 300),
+                            width: double.infinity,
+                            decoration: BoxDecoration(
+                              color: const Color(0xFF1E293B),
+                              borderRadius: BorderRadius.circular(20),
+                              gradient: LinearGradient(
+                                begin: Alignment.topLeft,
+                                end: Alignment.bottomRight,
+                                colors: [
+                                  const Color(0xFF1E293B),
+                                  const Color(0xFF1E293B).withOpacity(0.5),
+                                ],
+                              ),
+                            ),
+                            child: Icon(
+                              _contents[index].icon,
+                              size: 100,
+                              color: const Color(0xFF3B82F6),
                             ),
                           ),
-                          child: Icon(
-                            _contents[index].icon,
-                            size: 100,
-                            color: const Color(0xFF3B82F6),
-                          ),
                         ),
-                        const SizedBox(height: 48),
+                        const SizedBox(height: 32),
                         Text(
                           _contents[index].title,
                           textAlign: TextAlign.center,
@@ -105,7 +112,7 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
                             fontWeight: FontWeight.bold,
                           ),
                         ),
-                        const SizedBox(height: 16),
+                        const SizedBox(height: 12),
                         Text(
                           _contents[index].description,
                           textAlign: TextAlign.center,
@@ -156,7 +163,7 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
                             curve: Curves.easeInOut,
                           );
                         } else {
-                          // TODO: Navigate to Login
+                          _navigateToLogin();
                         }
                       },
                       style: ElevatedButton.styleFrom(
