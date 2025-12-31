@@ -1,13 +1,22 @@
 import 'package:flutter/material.dart';
 
 class ActivityScreen extends StatefulWidget {
-  const ActivityScreen({super.key});
+  final String initialFilter;
+  const ActivityScreen({super.key, this.initialFilter = 'All'});
 
   @override
   State<ActivityScreen> createState() => _ActivityScreenState();
 }
 
 class _ActivityScreenState extends State<ActivityScreen> {
+  late String _selectedFilter;
+
+  @override
+  void initState() {
+    super.initState();
+    _selectedFilter = widget.initialFilter;
+  }
+
   // Sample transaction data
   List<Map<String, dynamic>> transactions = [
     {
@@ -111,11 +120,11 @@ class _ActivityScreenState extends State<ActivityScreen> {
               ),
             ),
             const SizedBox(height: 20),
-            
+
             // Toggle Bar
             _buildToggleBar(),
             const SizedBox(height: 20),
-            
+
             // Search & Filters
             Padding(
               padding: const EdgeInsets.symmetric(horizontal: 20),
@@ -128,7 +137,7 @@ class _ActivityScreenState extends State<ActivityScreen> {
               ),
             ),
             const SizedBox(height: 20),
-            
+
             // Transaction List
             Expanded(
               child: ListView(
@@ -136,7 +145,7 @@ class _ActivityScreenState extends State<ActivityScreen> {
                 children: [
                   for (var section in groupedTransactions.keys) ...[
                     _buildSectionHeader(section),
-                    for (var transaction in groupedTransactions[section]!) 
+                    for (var transaction in groupedTransactions[section]!)
                       _buildSwipeableTransactionItem(transaction),
                     const SizedBox(height: 24),
                   ],
@@ -228,10 +237,7 @@ class _ActivityScreenState extends State<ActivityScreen> {
           SizedBox(width: 12),
           Text(
             'Search transactions...',
-            style: TextStyle(
-              color: Color(0xFF94A3B8),
-              fontSize: 15,
-            ),
+            style: TextStyle(color: Color(0xFF94A3B8), fontSize: 15),
           ),
         ],
       ),
@@ -243,40 +249,66 @@ class _ActivityScreenState extends State<ActivityScreen> {
       scrollDirection: Axis.horizontal,
       child: Row(
         children: [
-          _buildFilterChip('All', isSelected: true),
+          _buildFilterChip('All', isSelected: _selectedFilter == 'All'),
           const SizedBox(width: 12),
-          _buildFilterChip('Dec 2025', icon: Icons.calendar_today_rounded),
+          _buildFilterChip(
+            'Dec 2025',
+            icon: Icons.calendar_today_rounded,
+            isSelected: _selectedFilter == 'Dec 2025',
+          ),
           const SizedBox(width: 12),
-          _buildFilterChip('Income', icon: Icons.arrow_upward_rounded, iconColor: const Color(0xFF22C55E)),
+          _buildFilterChip(
+            'Income',
+            icon: Icons.arrow_upward_rounded,
+            iconColor: const Color(0xFF22C55E),
+            isSelected: _selectedFilter == 'Income',
+          ),
           const SizedBox(width: 12),
-          _buildFilterChip('Expense', icon: Icons.arrow_downward_rounded, iconColor: const Color(0xFFEF4444)),
+          _buildFilterChip(
+            'Expense',
+            icon: Icons.arrow_downward_rounded,
+            iconColor: const Color(0xFFEF4444),
+            isSelected: _selectedFilter == 'Expense',
+          ),
         ],
       ),
     );
   }
 
-  Widget _buildFilterChip(String label, {bool isSelected = false, IconData? icon, Color? iconColor}) {
-    return Container(
-      padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 10),
-      decoration: BoxDecoration(
-        color: isSelected ? const Color(0xFF3B82F6) : const Color(0xFF1E293B),
-        borderRadius: BorderRadius.circular(100),
-      ),
-      child: Row(
-        children: [
-          if (icon != null) ...[
-            Icon(icon, size: 16, color: iconColor ?? Colors.white),
-            const SizedBox(width: 8),
-          ],
-          Text(
-            label,
-            style: TextStyle(
-              color: Colors.white,
-              fontWeight: isSelected ? FontWeight.bold : FontWeight.w500,
-              fontSize: 14,
+  Widget _buildFilterChip(
+    String label, {
+    bool isSelected = false,
+    IconData? icon,
+    Color? iconColor,
+  }) {
+    return GestureDetector(
+      onTap: () {
+        setState(() {
+          _selectedFilter = label;
+        });
+      },
+      child: Container(
+        padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 10),
+        decoration: BoxDecoration(
+          color: isSelected ? const Color(0xFF3B82F6) : const Color(0xFF1E293B),
+          borderRadius: BorderRadius.circular(100),
+        ),
+        child: Row(
+          children: [
+            if (icon != null) ...[
+              Icon(icon, size: 16, color: iconColor ?? Colors.white),
+              const SizedBox(width: 8),
+            ],
+            Text(
+              label,
+              style: TextStyle(
+                color: Colors.white,
+                fontWeight: isSelected ? FontWeight.bold : FontWeight.w500,
+                fontSize: 14,
+              ),
             ),
-          ),
-        ],
+          ],
+        ),
       ),
     );
   }
@@ -340,8 +372,14 @@ class _ActivityScreenState extends State<ActivityScreen> {
                           Navigator.pop(context, false);
                           _editTransaction(transaction);
                         },
-                        icon: const Icon(Icons.edit_rounded, color: Colors.white),
-                        label: const Text('Edit', style: TextStyle(color: Colors.white)),
+                        icon: const Icon(
+                          Icons.edit_rounded,
+                          color: Colors.white,
+                        ),
+                        label: const Text(
+                          'Edit',
+                          style: TextStyle(color: Colors.white),
+                        ),
                         style: ElevatedButton.styleFrom(
                           backgroundColor: const Color(0xFF334155),
                           padding: const EdgeInsets.symmetric(vertical: 14),
@@ -357,8 +395,14 @@ class _ActivityScreenState extends State<ActivityScreen> {
                         onPressed: () {
                           Navigator.pop(context, true);
                         },
-                        icon: const Icon(Icons.delete_rounded, color: Colors.white),
-                        label: const Text('Delete', style: TextStyle(color: Colors.white)),
+                        icon: const Icon(
+                          Icons.delete_rounded,
+                          color: Colors.white,
+                        ),
+                        label: const Text(
+                          'Delete',
+                          style: TextStyle(color: Colors.white),
+                        ),
                         style: ElevatedButton.styleFrom(
                           backgroundColor: const Color(0xFFEF4444),
                           padding: const EdgeInsets.symmetric(vertical: 14),
@@ -373,7 +417,10 @@ class _ActivityScreenState extends State<ActivityScreen> {
                 const SizedBox(height: 12),
                 TextButton(
                   onPressed: () => Navigator.pop(context, false),
-                  child: const Text('Cancel', style: TextStyle(color: Color(0xFF94A3B8))),
+                  child: const Text(
+                    'Cancel',
+                    style: TextStyle(color: Color(0xFF94A3B8)),
+                  ),
                 ),
               ],
             ),
@@ -401,7 +448,11 @@ class _ActivityScreenState extends State<ActivityScreen> {
                 color: const Color(0xFF334155),
                 borderRadius: BorderRadius.circular(22.5),
               ),
-              child: const Icon(Icons.edit_rounded, color: Colors.white, size: 20),
+              child: const Icon(
+                Icons.edit_rounded,
+                color: Colors.white,
+                size: 20,
+              ),
             ),
             const SizedBox(width: 12),
             Container(
@@ -418,7 +469,11 @@ class _ActivityScreenState extends State<ActivityScreen> {
                   ),
                 ],
               ),
-              child: const Icon(Icons.delete_rounded, color: Colors.white, size: 20),
+              child: const Icon(
+                Icons.delete_rounded,
+                color: Colors.white,
+                size: 20,
+              ),
             ),
           ],
         ),
@@ -438,7 +493,11 @@ class _ActivityScreenState extends State<ActivityScreen> {
                 color: const Color(0xFF0F172A).withOpacity(0.5),
                 borderRadius: BorderRadius.circular(14),
               ),
-              child: Icon(transaction['icon'], color: transaction['iconColor'], size: 24),
+              child: Icon(
+                transaction['icon'],
+                color: transaction['iconColor'],
+                size: 24,
+              ),
             ),
             const SizedBox(width: 16),
             Expanded(
@@ -467,7 +526,9 @@ class _ActivityScreenState extends State<ActivityScreen> {
             Text(
               transaction['amount'],
               style: TextStyle(
-                color: transaction['isPositive'] ? const Color(0xFF3B82F6) : Colors.white,
+                color: transaction['isPositive']
+                    ? const Color(0xFF3B82F6)
+                    : Colors.white,
                 fontSize: 16,
                 fontWeight: FontWeight.bold,
               ),
