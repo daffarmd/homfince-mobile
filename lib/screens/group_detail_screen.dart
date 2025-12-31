@@ -1,4 +1,6 @@
 import 'package:flutter/material.dart';
+import 'package:homfince/screens/invite_members_screen.dart';
+import 'package:homfince/screens/activity_screen.dart';
 
 class GroupDetailScreen extends StatelessWidget {
   const GroupDetailScreen({super.key});
@@ -33,7 +35,52 @@ class GroupDetailScreen extends StatelessWidget {
         actions: [
           IconButton(
             icon: const Icon(Icons.settings, color: Colors.white),
-            onPressed: () {},
+            onPressed: () {
+              showModalBottomSheet(
+                context: context,
+                backgroundColor: const Color(0xFF1E293B),
+                shape: const RoundedRectangleBorder(
+                  borderRadius: BorderRadius.vertical(top: Radius.circular(24)),
+                ),
+                builder: (context) => Column(
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    const SizedBox(height: 12),
+                    Container(
+                      width: 40,
+                      height: 4,
+                      decoration: BoxDecoration(
+                        color: const Color(0xFF334155),
+                        borderRadius: BorderRadius.circular(2),
+                      ),
+                    ),
+                    const SizedBox(height: 24),
+                    _buildSettingsItem(
+                      context,
+                      Icons.edit_rounded,
+                      'Edit Group Profile',
+                    ),
+                    _buildSettingsItem(
+                      context,
+                      Icons.notifications_none_rounded,
+                      'Notifications',
+                    ),
+                    _buildSettingsItem(
+                      context,
+                      Icons.security_rounded,
+                      'Permissions',
+                    ),
+                    _buildSettingsItem(
+                      context,
+                      Icons.exit_to_app_rounded,
+                      'Leave Group',
+                      isDestructive: true,
+                    ),
+                    const SizedBox(height: 32),
+                  ],
+                ),
+              );
+            },
           ),
         ],
       ),
@@ -51,42 +98,121 @@ class GroupDetailScreen extends StatelessWidget {
               Row(
                 children: [
                   Expanded(
-                    child: _buildStatCard('Income', r'$4,200', '+12%', Icons.arrow_downward_rounded, const Color(0xFF22C55E)),
+                    child: _buildStatCard(
+                      context,
+                      'Income',
+                      r'$4,200',
+                      '+12%',
+                      Icons.arrow_downward_rounded,
+                      const Color(0xFF22C55E),
+                      () {
+                        Navigator.push(
+                          context,
+                          MaterialPageRoute(
+                            builder: (context) =>
+                                const ActivityScreen(initialFilter: 'Income'),
+                          ),
+                        );
+                      },
+                    ),
                   ),
                   const SizedBox(width: 16),
                   Expanded(
-                    child: _buildStatCard('Expense', r'$1,850', '-5%', Icons.arrow_upward_rounded, const Color(0xFFEF4444)),
+                    child: _buildStatCard(
+                      context,
+                      'Expense',
+                      r'$1,850',
+                      '-5%',
+                      Icons.arrow_upward_rounded,
+                      const Color(0xFFEF4444),
+                      () {
+                        Navigator.push(
+                          context,
+                          MaterialPageRoute(
+                            builder: (context) =>
+                                const ActivityScreen(initialFilter: 'Expense'),
+                          ),
+                        );
+                      },
+                    ),
                   ),
                 ],
               ),
               const SizedBox(height: 32),
 
               // Members Section
-              _buildSectionHeader('Members', 'Manage'),
+              _buildSectionHeader('Members', 'Manage', () {
+                // Placeholder for manage members navigation
+                ScaffoldMessenger.of(context).showSnackBar(
+                  const SnackBar(content: Text('Manage Members clicked')),
+                );
+              }),
               const SizedBox(height: 16),
               SingleChildScrollView(
                 scrollDirection: Axis.horizontal,
                 child: Row(
                   children: [
-                    _buildMemberAvatar('https://api.dicebear.com/7.x/avataaars/svg?seed=Alice', 'Alice', isOnline: true),
+                    _buildMemberAvatar(
+                      'https://api.dicebear.com/7.x/avataaars/svg?seed=Alice',
+                      'Alice',
+                      isOnline: true,
+                    ),
                     const SizedBox(width: 16),
-                    _buildMemberAvatar('https://api.dicebear.com/7.x/avataaars/svg?seed=Bob', 'Bob'),
+                    _buildMemberAvatar(
+                      'https://api.dicebear.com/7.x/avataaars/svg?seed=Bob',
+                      'Bob',
+                    ),
                     const SizedBox(width: 16),
-                    _buildMemberAvatar('https://api.dicebear.com/7.x/avataaars/svg?seed=Charlie', 'Charlie'),
+                    _buildMemberAvatar(
+                      'https://api.dicebear.com/7.x/avataaars/svg?seed=Charlie',
+                      'Charlie',
+                    ),
                     const SizedBox(width: 16),
-                    _buildInviteButton(),
+                    _buildInviteButton(context),
                   ],
                 ),
               ),
               const SizedBox(height: 32),
 
               // Recent Activity Section
-              _buildSectionHeader('Recent Activity', 'See all'),
+              _buildSectionHeader('Recent Activity', 'See all', () {
+                Navigator.push(
+                  context,
+                  MaterialPageRoute(
+                    builder: (context) => const ActivityScreen(),
+                  ),
+                );
+              }),
               const SizedBox(height: 16),
-              _buildActivityItem('Grocery Store', 'Alice • Today, 10:23 AM', r'-$124.50', Icons.shopping_cart_outlined, const Color(0xFFF97316)),
-              _buildActivityItem('Netflix', 'Bob • Yesterday', r'-$15.99', Icons.movie_outlined, const Color(0xFFA855F7)),
-              _buildActivityItem('Utility Bill', 'Alice • Oct 24', r'-$150.00', Icons.bolt_rounded, const Color(0xFF3B82F6)),
-              _buildActivityItem('Refund', 'Charlie • Oct 22', r'+$45.00', Icons.money_rounded, const Color(0xFF22C55E), isPositive: true),
+              _buildActivityItem(
+                'Grocery Store',
+                'Alice • Today, 10:23 AM',
+                r'-$124.50',
+                Icons.shopping_cart_outlined,
+                const Color(0xFFF97316),
+              ),
+              _buildActivityItem(
+                'Netflix',
+                'Bob • Yesterday',
+                r'-$15.99',
+                Icons.movie_outlined,
+                const Color(0xFFA855F7),
+              ),
+              _buildActivityItem(
+                'Utility Bill',
+                'Alice • Oct 24',
+                r'-$150.00',
+                Icons.bolt_rounded,
+                const Color(0xFF3B82F6),
+              ),
+              _buildActivityItem(
+                'Refund',
+                'Charlie • Oct 22',
+                r'+$45.00',
+                Icons.money_rounded,
+                const Color(0xFF22C55E),
+                isPositive: true,
+              ),
               const SizedBox(height: 80),
             ],
           ),
@@ -116,7 +242,11 @@ class GroupDetailScreen extends StatelessWidget {
             children: [
               const Row(
                 children: [
-                  Icon(Icons.account_balance_wallet_outlined, color: Color(0xFF64748B), size: 20),
+                  Icon(
+                    Icons.account_balance_wallet_outlined,
+                    color: Color(0xFF64748B),
+                    size: 20,
+                  ),
                   SizedBox(width: 8),
                   Text(
                     'Shared Balance',
@@ -132,7 +262,11 @@ class GroupDetailScreen extends StatelessWidget {
                 ),
                 child: const Text(
                   'USD',
-                  style: TextStyle(color: Color(0xFF3B82F6), fontSize: 12, fontWeight: FontWeight.bold),
+                  style: TextStyle(
+                    color: Color(0xFF3B82F6),
+                    fontSize: 12,
+                    fontWeight: FontWeight.bold,
+                  ),
                 ),
               ),
             ],
@@ -140,7 +274,11 @@ class GroupDetailScreen extends StatelessWidget {
           const SizedBox(height: 12),
           const Text(
             r'$12,450.00',
-            style: TextStyle(color: Colors.white, fontSize: 36, fontWeight: FontWeight.bold),
+            style: TextStyle(
+              color: Colors.white,
+              fontSize: 36,
+              fontWeight: FontWeight.bold,
+            ),
           ),
           const SizedBox(height: 24),
           Row(
@@ -153,14 +291,20 @@ class GroupDetailScreen extends StatelessWidget {
                     const CircleAvatar(
                       radius: 12,
                       backgroundColor: Color(0xFF1E293B),
-                      child: CircleAvatar(radius: 10, backgroundColor: Color(0xFFE2E8F0)),
+                      child: CircleAvatar(
+                        radius: 10,
+                        backgroundColor: Color(0xFFE2E8F0),
+                      ),
                     ),
                     Positioned(
                       left: 14,
                       child: const CircleAvatar(
                         radius: 12,
                         backgroundColor: Color(0xFF1E293B),
-                        child: CircleAvatar(radius: 10, backgroundColor: Color(0xFFCBD5E1)),
+                        child: CircleAvatar(
+                          radius: 10,
+                          backgroundColor: Color(0xFFCBD5E1),
+                        ),
                       ),
                     ),
                   ],
@@ -173,7 +317,10 @@ class GroupDetailScreen extends StatelessWidget {
               ),
               const Spacer(),
               Container(
-                padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+                padding: const EdgeInsets.symmetric(
+                  horizontal: 16,
+                  vertical: 8,
+                ),
                 decoration: BoxDecoration(
                   color: const Color(0xFF3B82F6),
                   borderRadius: BorderRadius.circular(100),
@@ -182,10 +329,18 @@ class GroupDetailScreen extends StatelessWidget {
                   children: [
                     Text(
                       'Analytics',
-                      style: TextStyle(color: Colors.white, fontSize: 13, fontWeight: FontWeight.w600),
+                      style: TextStyle(
+                        color: Colors.white,
+                        fontSize: 13,
+                        fontWeight: FontWeight.w600,
+                      ),
                     ),
                     SizedBox(width: 4),
-                    Icon(Icons.bar_chart_rounded, color: Colors.white, size: 16),
+                    Icon(
+                      Icons.bar_chart_rounded,
+                      color: Colors.white,
+                      size: 16,
+                    ),
                   ],
                 ),
               ),
@@ -196,60 +351,96 @@ class GroupDetailScreen extends StatelessWidget {
     );
   }
 
-  Widget _buildStatCard(String title, String amount, String distinct, IconData icon, Color color) {
-    return Container(
-      padding: const EdgeInsets.all(16),
-      decoration: BoxDecoration(
-        color: const Color(0xFF1E293B),
-        borderRadius: BorderRadius.circular(20),
-      ),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          Container(
-            padding: const EdgeInsets.all(8),
-            decoration: BoxDecoration(
-              color: const Color(0xFF0F172A),
-              borderRadius: BorderRadius.circular(12),
+  Widget _buildStatCard(
+    BuildContext context,
+    String title,
+    String amount,
+    String distinct,
+    IconData icon,
+    Color color,
+    VoidCallback onTap,
+  ) {
+    return GestureDetector(
+      onTap: onTap,
+      child: Container(
+        padding: const EdgeInsets.all(16),
+        decoration: BoxDecoration(
+          color: const Color(0xFF1E293B),
+          borderRadius: BorderRadius.circular(20),
+        ),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Container(
+              padding: const EdgeInsets.all(8),
+              decoration: BoxDecoration(
+                color: const Color(0xFF0F172A),
+                borderRadius: BorderRadius.circular(12),
+              ),
+              child: Row(
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  Icon(icon, color: color, size: 16),
+                  const SizedBox(width: 8),
+                  Text(
+                    title,
+                    style: const TextStyle(
+                      color: Color(0xFF94A3B8),
+                      fontSize: 13,
+                    ),
+                  ),
+                ],
+              ),
             ),
-            child: Row(
-              mainAxisSize: MainAxisSize.min,
-              children: [
-                Icon(icon, color: color, size: 16),
-                const SizedBox(width: 8),
-                Text(
-                  title,
-                  style: const TextStyle(color: Color(0xFF94A3B8), fontSize: 13),
-                ),
-              ],
+            const SizedBox(height: 16),
+            Text(
+              amount,
+              style: const TextStyle(
+                color: Colors.white,
+                fontSize: 20,
+                fontWeight: FontWeight.bold,
+              ),
             ),
-          ),
-          const SizedBox(height: 16),
-          Text(
-            amount,
-            style: const TextStyle(color: Colors.white, fontSize: 20, fontWeight: FontWeight.bold),
-          ),
-          const SizedBox(height: 4),
-          Text(
-            distinct,
-            style: TextStyle(color: color, fontSize: 13, fontWeight: FontWeight.w600),
-          ),
-        ],
+            const SizedBox(height: 4),
+            Text(
+              distinct,
+              style: TextStyle(
+                color: color,
+                fontSize: 13,
+                fontWeight: FontWeight.w600,
+              ),
+            ),
+          ],
+        ),
       ),
     );
   }
 
-  Widget _buildSectionHeader(String title, String action) {
+  Widget _buildSectionHeader(
+    String title,
+    String action,
+    VoidCallback onActionPressed,
+  ) {
     return Row(
       mainAxisAlignment: MainAxisAlignment.spaceBetween,
       children: [
         Text(
           title,
-          style: const TextStyle(color: Colors.white, fontSize: 18, fontWeight: FontWeight.bold),
+          style: const TextStyle(
+            color: Colors.white,
+            fontSize: 18,
+            fontWeight: FontWeight.bold,
+          ),
         ),
-        Text(
-          action,
-          style: const TextStyle(color: Color(0xFF3B82F6), fontWeight: FontWeight.w600),
+        GestureDetector(
+          onTap: onActionPressed,
+          child: Text(
+            action,
+            style: const TextStyle(
+              color: Color(0xFF3B82F6),
+              fontWeight: FontWeight.w600,
+            ),
+          ),
         ),
       ],
     );
@@ -279,7 +470,10 @@ class GroupDetailScreen extends StatelessWidget {
                   decoration: BoxDecoration(
                     color: const Color(0xFF22C55E),
                     shape: BoxShape.circle,
-                    border: Border.all(color: const Color(0xFF0F172A), width: 2),
+                    border: Border.all(
+                      color: const Color(0xFF0F172A),
+                      width: 2,
+                    ),
                   ),
                 ),
               ),
@@ -294,36 +488,48 @@ class GroupDetailScreen extends StatelessWidget {
     );
   }
 
-  Widget _buildInviteButton() {
-    return Column(
-      children: [
-        Container(
-          width: 64,
-          height: 64,
-          decoration: BoxDecoration(
-            color: const Color(0xFF0F172A),
-            shape: BoxShape.circle,
-            border: Border.all(color: const Color(0xFF334155), width: 1, style: BorderStyle.none),
-          ),
-          child: CustomPaint(
-            painter: DashedCirclePainter(),
-            child: const Center(
-              child: Icon(Icons.add, color: Color(0xFF3B82F6), size: 28),
+  Widget _buildInviteButton(BuildContext context) {
+    return GestureDetector(
+      onTap: () {
+        Navigator.push(
+          context,
+          MaterialPageRoute(builder: (context) => const InviteMembersScreen()),
+        );
+      },
+      child: Column(
+        children: [
+          Container(
+            width: 64,
+            height: 64,
+            decoration: const BoxDecoration(
+              color: Color(0xFF0F172A),
+              shape: BoxShape.circle,
+            ),
+            child: CustomPaint(
+              painter: DashedCirclePainter(),
+              child: const Center(
+                child: Icon(Icons.add, color: Color(0xFF3B82F6), size: 28),
+              ),
             ),
           ),
-        ),
-        const SizedBox(height: 8),
-        const Text(
-          'Invite',
-          style: TextStyle(color: Color(0xFF3B82F6), fontSize: 13),
-        ),
-      ],
+          const SizedBox(height: 8),
+          const Text(
+            'Invite',
+            style: TextStyle(color: Color(0xFF3B82F6), fontSize: 13),
+          ),
+        ],
+      ),
     );
   }
 
   Widget _buildActivityItem(
-      String title, String subtitle, String amount, IconData icon, Color iconBgColor,
-      {bool isPositive = false}) {
+    String title,
+    String subtitle,
+    String amount,
+    IconData icon,
+    Color iconBgColor, {
+    bool isPositive = false,
+  }) {
     return Container(
       margin: const EdgeInsets.only(bottom: 12),
       padding: const EdgeInsets.all(16),
@@ -360,10 +566,18 @@ class GroupDetailScreen extends StatelessWidget {
                     if (!subtitle.contains('•')) ...[
                       // If no dot, assume it is simpler. But here we have avatar + Text for "Alice • Today..."
                       // Let's just parse logic for specific UI if needed
-                      CircleAvatar(radius: 8, backgroundColor: Colors.grey[700], child: const Icon(Icons.person, size: 10, color: Colors.white)),
+                      CircleAvatar(
+                        radius: 8,
+                        backgroundColor: Colors.grey[700],
+                        child: const Icon(
+                          Icons.person,
+                          size: 10,
+                          color: Colors.white,
+                        ),
+                      ),
                       const SizedBox(width: 4),
                     ],
-                     Text(
+                    Text(
                       subtitle,
                       style: const TextStyle(
                         color: Color(0xFF94A3B8),
@@ -378,12 +592,57 @@ class GroupDetailScreen extends StatelessWidget {
           Text(
             amount,
             style: TextStyle(
-              color: isPositive ? const Color(0xFF22C55E) : Colors.white, // Green for positive/redund/income
+              color: isPositive
+                  ? const Color(0xFF22C55E)
+                  : Colors.white, // Green for positive/redund/income
               fontSize: 16,
               fontWeight: FontWeight.bold,
             ),
           ),
         ],
+      ),
+    );
+  }
+
+  Widget _buildSettingsItem(
+    BuildContext context,
+    IconData icon,
+    String title, {
+    bool isDestructive = false,
+  }) {
+    return InkWell(
+      onTap: () {
+        Navigator.pop(context);
+        ScaffoldMessenger.of(
+          context,
+        ).showSnackBar(SnackBar(content: Text('$title clicked')));
+      },
+      child: Padding(
+        padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 16),
+        child: Row(
+          children: [
+            Icon(
+              icon,
+              color: isDestructive ? Colors.redAccent : const Color(0xFF94A3B8),
+              size: 22,
+            ),
+            const SizedBox(width: 16),
+            Text(
+              title,
+              style: TextStyle(
+                color: isDestructive ? Colors.redAccent : Colors.white,
+                fontSize: 16,
+                fontWeight: FontWeight.w500,
+              ),
+            ),
+            const Spacer(),
+            Icon(
+              Icons.chevron_right_rounded,
+              color: const Color(0xFF334155),
+              size: 20,
+            ),
+          ],
+        ),
       ),
     );
   }
@@ -406,7 +665,8 @@ class DashedCirclePainter extends CustomPainter {
 
     for (int i = 0; i < dashCount; i++) {
       final double startAngle = i * anglePerDash;
-      final double sweepAngle = anglePerDash * (dashWidth / (dashWidth + dashSpace));
+      final double sweepAngle =
+          anglePerDash * (dashWidth / (dashWidth + dashSpace));
       canvas.drawArc(
         Rect.fromLTWH(0, 0, size.width, size.height),
         startAngle,

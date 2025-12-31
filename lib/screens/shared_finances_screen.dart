@@ -1,18 +1,137 @@
 import 'package:flutter/material.dart';
 import 'package:homfince/screens/group_detail_screen.dart';
+import 'package:homfince/screens/create_group_screen.dart';
 
-class SharedFinancesScreen extends StatelessWidget {
+class SharedFinancesScreen extends StatefulWidget {
   const SharedFinancesScreen({super.key});
 
   @override
+  State<SharedFinancesScreen> createState() => _SharedFinancesScreenState();
+}
+
+enum SortOption { name, balanceHighToLow, balanceLowToHigh }
+
+class GroupData {
+  final String title;
+  final String subtitle;
+  final String amountStr;
+  final double amountValue; // Helper for sorting
+  final IconData icon;
+  final Color iconBgColor;
+  final Color iconColor;
+  final List<String> avatarUrls;
+  final int extraCount;
+  final bool isNegative;
+  // Use a datetime or just an index for default order?
+  // For 'Recent', we can rely on existing subtitle text parsing or just add a field.
+  // I'll add a simple timestamp simulation
+  final int lastActiveMinutesAgo;
+
+  GroupData({
+    required this.title,
+    required this.subtitle,
+    required this.amountStr,
+    required this.amountValue,
+    required this.icon,
+    required this.iconBgColor,
+    required this.iconColor,
+    required this.avatarUrls,
+    this.extraCount = 0,
+    this.isNegative = false,
+    required this.lastActiveMinutesAgo,
+  });
+}
+
+class _SharedFinancesScreenState extends State<SharedFinancesScreen> {
+  String _selectedFilter = 'Active';
+  SortOption _currentSortOption = SortOption.name; // Default
+
+  // Initial Data
+  final List<GroupData> _allGroups = [
+    GroupData(
+      title: 'Family Finance',
+      subtitle: '4 Members • Active 2m ago',
+      amountStr: r'$12,450.00',
+      amountValue: 12450.00,
+      icon: Icons.home_rounded,
+      iconBgColor: const Color(0xFF1E293B),
+      iconColor: const Color(0xFF3B82F6),
+      avatarUrls: [
+        'https://api.dicebear.com/7.x/avataaars/svg?seed=Alice',
+        'https://api.dicebear.com/7.x/avataaars/svg?seed=Bob',
+        'https://api.dicebear.com/7.x/avataaars/svg?seed=Charlie',
+      ],
+      extraCount: 1,
+      lastActiveMinutesAgo: 2,
+    ),
+    GroupData(
+      title: 'With Partner',
+      subtitle: '2 Members • Active 1h ago',
+      amountStr: r'$3,200.50',
+      amountValue: 3200.50,
+      icon: Icons.favorite_rounded,
+      iconBgColor: const Color(0xFF3B1E29),
+      iconColor: const Color(0xFFEC4899),
+      avatarUrls: [
+        'https://api.dicebear.com/7.x/avataaars/svg?seed=Diana',
+        'https://api.dicebear.com/7.x/avataaars/svg?seed=Evan',
+      ],
+      lastActiveMinutesAgo: 60,
+    ),
+    GroupData(
+      title: 'Apt 4B Roommates',
+      subtitle: '3 Members • Active 1d ago',
+      amountStr: r'-$150.00',
+      amountValue: -150.00,
+      icon: Icons.groups_rounded,
+      iconBgColor: const Color(0xFF2E1E3B),
+      iconColor: const Color(0xFFA855F7),
+      avatarUrls: ['https://api.dicebear.com/7.x/avataaars/svg?seed=Fiona'],
+      extraCount: 2,
+      isNegative: true,
+      lastActiveMinutesAgo: 1440,
+    ),
+  ];
+
+  List<GroupData> get _filteredAndSortedGroups {
+    List<GroupData> list = List.from(_allGroups);
+
+    // Filter logic (Stub implementation since we don't really have archived status in data model yet)
+    // "Highest Balance" tab acts like a preset sort?
+    // Let's treat tabs as filters and Sort Icon as Sort.
+    // If "Highest Balance" tab is selected, we override sort to Balance HighToLow?
+
+    if (_selectedFilter == 'Highest Balance') {
+      list.sort((a, b) => b.amountValue.compareTo(a.amountValue));
+    } else {
+      // Apply manual sort
+      switch (_currentSortOption) {
+        case SortOption.name:
+          list.sort((a, b) => a.title.compareTo(b.title));
+          break;
+        case SortOption.balanceHighToLow:
+          list.sort((a, b) => b.amountValue.compareTo(a.amountValue));
+          break;
+        case SortOption.balanceLowToHigh:
+          list.sort((a, b) => a.amountValue.compareTo(b.amountValue));
+          break;
+      }
+    }
+
+    return list;
+  }
+
+  @override
   Widget build(BuildContext context) {
+    final groups = _filteredAndSortedGroups;
+
     return Scaffold(
       backgroundColor: const Color(0xFF0F172A),
       appBar: AppBar(
         backgroundColor: const Color(0xFF0F172A),
         elevation: 0,
-        automaticallyImplyLeading: false, 
-        leading: Navigator.canPop(context) 
+        automaticallyImplyLeading: false,
+        leading: Navigator.canPop(context)
             ? IconButton(
                 icon: const Icon(Icons.arrow_back, color: Colors.white),
                 onPressed: () => Navigator.of(context).pop(),
@@ -37,7 +156,13 @@ class SharedFinancesScreen extends StatelessWidget {
               ),
               child: const Icon(Icons.add, size: 16, color: Colors.white),
             ),
-            onPressed: () {},
+            onPressed: () {
+              Navigator.of(context).push(
+                MaterialPageRoute(
+                  builder: (context) => const CreateGroupScreen(),
+                ),
+              );
+            },
           ),
           const SizedBox(width: 16),
         ],
@@ -51,7 +176,7 @@ class SharedFinancesScreen extends StatelessWidget {
             padding: const EdgeInsets.symmetric(horizontal: 20),
             child: Row(
               children: [
-                _buildFilterTab('Active', isSelected: true),
+                _buildFilterTab('Active'),
                 const SizedBox(width: 12),
                 _buildFilterTab('Archived'),
                 const SizedBox(width: 12),
@@ -75,7 +200,48 @@ class SharedFinancesScreen extends StatelessWidget {
                     fontWeight: FontWeight.bold,
                   ),
                 ),
-                Icon(Icons.sort_rounded, color: const Color(0xFF94A3B8).withOpacity(0.8)),
+                PopupMenuButton<SortOption>(
+                  icon: Icon(
+                    Icons.sort_rounded,
+                    color: const Color(0xFF94A3B8).withValues(alpha: 0.8),
+                  ),
+                  color: const Color(0xFF1E293B),
+                  shape: RoundedRectangleBorder(
+                    borderRadius: BorderRadius.circular(12),
+                  ),
+                  itemBuilder: (context) => [
+                    const PopupMenuItem(
+                      value: SortOption.name,
+                      child: Text(
+                        'Name (A-Z)',
+                        style: TextStyle(color: Colors.white),
+                      ),
+                    ),
+                    const PopupMenuItem(
+                      value: SortOption.balanceHighToLow,
+                      child: Text(
+                        'Balance (High-Low)',
+                        style: TextStyle(color: Colors.white),
+                      ),
+                    ),
+                    const PopupMenuItem(
+                      value: SortOption.balanceLowToHigh,
+                      child: Text(
+                        'Balance (Low-High)',
+                        style: TextStyle(color: Colors.white),
+                      ),
+                    ),
+                  ],
+                  onSelected: (option) {
+                    setState(() {
+                      _currentSortOption = option;
+                      // If user picks a sort manually, maybe switch filter to Active so it's obvious?
+                      if (_selectedFilter == 'Highest Balance') {
+                        _selectedFilter = 'Active';
+                      }
+                    });
+                  },
+                ),
               ],
             ),
           ),
@@ -83,87 +249,16 @@ class SharedFinancesScreen extends StatelessWidget {
 
           // Groups List
           Expanded(
-            child: ListView(
+            child: ListView.builder(
               padding: const EdgeInsets.symmetric(horizontal: 20),
-              children: [
-                _buildGroupCard(
-                  context,
-                  'Family Finance',
-                  '4 Members • Active 2m ago',
-                  r'$12,450.00',
-                  Icons.home_rounded,
-                  const Color(0xFF1E293B),
-                  const Color(0xFF3B82F6),
-                  [
-                    'https://api.dicebear.com/7.x/avataaars/svg?seed=Alice',
-                    'https://api.dicebear.com/7.x/avataaars/svg?seed=Bob',
-                    'https://api.dicebear.com/7.x/avataaars/svg?seed=Charlie',
-                  ],
-                  extraCount: 1,
-                ),
-                _buildGroupCard(
-                  context,
-                  'With Partner',
-                  '2 Members • Active 1h ago',
-                  r'$3,200.50',
-                  Icons.favorite_rounded,
-                  const Color(0xFF3B1E29), // Darker pink bg
-                  const Color(0xFFEC4899), // Pink icon
-                  [
-                     'https://api.dicebear.com/7.x/avataaars/svg?seed=Diana',
-                     'https://api.dicebear.com/7.x/avataaars/svg?seed=Evan',
-                  ],
-                ),
-                _buildGroupCard(
-                  context,
-                  'Apt 4B Roommates',
-                  '3 Members • Active 1d ago',
-                  r'-$150.00',
-                  Icons.groups_rounded,
-                  const Color(0xFF2E1E3B), // Darker purple bg
-                  const Color(0xFFA855F7), // Purple icon
-                  [
-                     'https://api.dicebear.com/7.x/avataaars/svg?seed=Fiona',
-                  ],
-                  extraCount: 2,
-                  isNegative: true,
-                ),
-                const SizedBox(height: 80), // Bottom padding
-              ],
-            ),
-          ),
-          
-          // Create New Group Button
-          Padding(
-            padding: const EdgeInsets.all(20.0),
-            child: SizedBox(
-              width: double.infinity,
-              height: 56,
-              child: ElevatedButton(
-                onPressed: () {},
-                style: ElevatedButton.styleFrom(
-                  backgroundColor: const Color(0xFF3B82F6),
-                  shape: RoundedRectangleBorder(
-                    borderRadius: BorderRadius.circular(12),
-                  ),
-                  elevation: 0,
-                ),
-                child: const Row(
-                  mainAxisAlignment: MainAxisAlignment.center,
-                  children: [
-                    Icon(Icons.add, color: Colors.white),
-                    SizedBox(width: 8),
-                    Text(
-                      'Create New Group',
-                      style: TextStyle(
-                        color: Colors.white,
-                        fontSize: 16,
-                        fontWeight: FontWeight.bold,
-                      ),
-                    ),
-                  ],
-                ),
-              ),
+              itemCount: groups.length + 1, // +1 for extra padding at bottom
+              itemBuilder: (context, index) {
+                if (index == groups.length) {
+                  return const SizedBox(height: 80);
+                }
+                final group = groups[index];
+                return _buildGroupCard(context, group);
+              },
             ),
           ),
         ],
@@ -171,36 +266,34 @@ class SharedFinancesScreen extends StatelessWidget {
     );
   }
 
-  Widget _buildFilterTab(String label, {bool isSelected = false}) {
-    return Container(
-      padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 10),
-      decoration: BoxDecoration(
-        color: isSelected ? const Color(0xFF3B82F6) : const Color(0xFF1E293B),
-        borderRadius: BorderRadius.circular(100),
-      ),
-      child: Text(
-        label,
-        style: TextStyle(
-          color: isSelected ? Colors.white : const Color(0xFF94A3B8),
-          fontWeight: isSelected ? FontWeight.bold : FontWeight.w500,
-          fontSize: 14,
+  Widget _buildFilterTab(String label) {
+    bool isSelected = _selectedFilter == label;
+    return GestureDetector(
+      onTap: () {
+        setState(() {
+          _selectedFilter = label;
+          // If Highest Balance is clicked, auto-sort? The logical requirement is handled in getter
+        });
+      },
+      child: Container(
+        padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 10),
+        decoration: BoxDecoration(
+          color: isSelected ? const Color(0xFF3B82F6) : const Color(0xFF1E293B),
+          borderRadius: BorderRadius.circular(100),
+        ),
+        child: Text(
+          label,
+          style: TextStyle(
+            color: isSelected ? Colors.white : const Color(0xFF94A3B8),
+            fontWeight: isSelected ? FontWeight.bold : FontWeight.w500,
+            fontSize: 14,
+          ),
         ),
       ),
     );
   }
 
-  Widget _buildGroupCard(
-    BuildContext context,
-    String title,
-    String subtitle,
-    String amount,
-    IconData icon,
-    Color iconBgColor,
-    Color iconColor,
-    List<String> avatarUrls, {
-    int extraCount = 0,
-    bool isNegative = false,
-  }) {
+  Widget _buildGroupCard(BuildContext context, GroupData group) {
     return GestureDetector(
       onTap: () {
         Navigator.of(context).push(
@@ -221,10 +314,12 @@ class SharedFinancesScreen extends StatelessWidget {
                 Container(
                   padding: const EdgeInsets.all(12),
                   decoration: BoxDecoration(
-                    color: iconBgColor == const Color(0xFF1E293B) ? const Color(0xFF0F172A) : iconBgColor, // Slight adjustment for contrast if needed
+                    color: group.iconBgColor == const Color(0xFF1E293B)
+                        ? const Color(0xFF0F172A)
+                        : group.iconBgColor,
                     borderRadius: BorderRadius.circular(14),
                   ),
-                  child: Icon(icon, color: iconColor, size: 24),
+                  child: Icon(group.icon, color: group.iconColor, size: 24),
                 ),
                 const SizedBox(width: 16),
                 Expanded(
@@ -232,7 +327,7 @@ class SharedFinancesScreen extends StatelessWidget {
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
                       Text(
-                        title,
+                        group.title,
                         style: const TextStyle(
                           color: Colors.white,
                           fontSize: 16,
@@ -240,13 +335,12 @@ class SharedFinancesScreen extends StatelessWidget {
                         ),
                       ),
                       const SizedBox(height: 4),
-                      // Quick fix for the subtitle coloring
                       RichText(
                         text: TextSpan(
                           style: const TextStyle(fontSize: 12),
                           children: [
                             TextSpan(
-                              text: subtitle.split('•')[0],
+                              text: group.subtitle.split('•')[0],
                               style: const TextStyle(color: Color(0xFF94A3B8)),
                             ),
                             const TextSpan(
@@ -254,7 +348,9 @@ class SharedFinancesScreen extends StatelessWidget {
                               style: TextStyle(color: Color(0xFF94A3B8)),
                             ),
                             TextSpan(
-                              text: subtitle.split('•').length > 1 ? subtitle.split('•')[1] : '',
+                              text: group.subtitle.split('•').length > 1
+                                  ? group.subtitle.split('•')[1]
+                                  : '',
                               style: const TextStyle(color: Color(0xFF22C55E)),
                             ),
                           ],
@@ -263,7 +359,38 @@ class SharedFinancesScreen extends StatelessWidget {
                     ],
                   ),
                 ),
-                const Icon(Icons.more_vert, color: Color(0xFF94A3B8)),
+                PopupMenuButton<String>(
+                  icon: const Icon(Icons.more_vert, color: Color(0xFF94A3B8)),
+                  color: const Color(0xFF1E293B),
+                  shape: RoundedRectangleBorder(
+                    borderRadius: BorderRadius.circular(12),
+                  ),
+                  itemBuilder: (BuildContext context) =>
+                      <PopupMenuEntry<String>>[
+                        const PopupMenuItem<String>(
+                          value: 'edit',
+                          child: Text(
+                            'Edit Group',
+                            style: TextStyle(color: Colors.white),
+                          ),
+                        ),
+                        const PopupMenuItem<String>(
+                          value: 'archive',
+                          child: Text(
+                            'Archive Group',
+                            style: TextStyle(color: Colors.white),
+                          ),
+                        ),
+                        const PopupMenuItem<String>(
+                          value: 'leave',
+                          child: Text(
+                            'Leave Group',
+                            style: TextStyle(color: Colors.redAccent),
+                          ),
+                        ),
+                      ],
+                  onSelected: (String value) {},
+                ),
               ],
             ),
             const SizedBox(height: 16),
@@ -277,25 +404,29 @@ class SharedFinancesScreen extends StatelessWidget {
                   // Avatars
                   SizedBox(
                     height: 36,
-                    width: 100, // Fixed width to contain avatars
+                    width: 100,
                     child: Stack(
                       children: [
-                        for (int i = 0; i < avatarUrls.length; i++)
+                        for (int i = 0; i < group.avatarUrls.length; i++)
                           Positioned(
                             left: i * 24.0,
                             child: CircleAvatar(
                               radius: 18,
                               backgroundColor: const Color(0xFF1E293B),
                               child: CircleAvatar(
-                                  radius: 16,
-                                  backgroundColor: const Color(0xFF334155),
-                                  child: const Icon(Icons.person, size: 20, color: Colors.white70), // Placeholder for URL
+                                radius: 16,
+                                backgroundColor: const Color(0xFF334155),
+                                child: const Icon(
+                                  Icons.person,
+                                  size: 20,
+                                  color: Colors.white70,
+                                ),
                               ),
                             ),
                           ),
-                        if (extraCount > 0)
+                        if (group.extraCount > 0)
                           Positioned(
-                            left: avatarUrls.length * 24.0,
+                            left: group.avatarUrls.length * 24.0,
                             child: CircleAvatar(
                               radius: 18,
                               backgroundColor: const Color(0xFF1E293B),
@@ -303,7 +434,7 @@ class SharedFinancesScreen extends StatelessWidget {
                                 radius: 16,
                                 backgroundColor: const Color(0xFF334155),
                                 child: Text(
-                                  '+$extraCount',
+                                  '+${group.extraCount}',
                                   style: const TextStyle(
                                     color: Colors.white,
                                     fontSize: 11,
@@ -316,7 +447,7 @@ class SharedFinancesScreen extends StatelessWidget {
                       ],
                     ),
                   ),
-                  
+
                   // Balance
                   Column(
                     crossAxisAlignment: CrossAxisAlignment.end,
@@ -330,9 +461,11 @@ class SharedFinancesScreen extends StatelessWidget {
                       ),
                       const SizedBox(height: 4),
                       Text(
-                        amount,
+                        group.amountStr,
                         style: TextStyle(
-                          color: isNegative ? const Color(0xFFEF4444) : const Color(0xFF3B82F6),
+                          color: group.isNegative
+                              ? const Color(0xFFEF4444)
+                              : const Color(0xFF3B82F6),
                           fontSize: 20,
                           fontWeight: FontWeight.bold,
                         ),
